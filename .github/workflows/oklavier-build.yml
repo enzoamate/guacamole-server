@@ -1,0 +1,52 @@
+name: oklavier-guacd build
+
+on:
+  push:
+    branches: [oklavier-channels]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: enzoamate/oklavier-guacd
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute tags
+        id: tags
+        run: |
+          SHA="${GITHUB_SHA::8}"
+          # Try to read upstream version from git tag if it's an ancestor;
+          # fall back to "dev" otherwise.
+          UPSTREAM_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo dev)
+          {
+            echo "sha=${SHA}"
+            echo "upstream=${UPSTREAM_TAG}"
+            echo "full=${UPSTREAM_TAG}-oklavier-${SHA}"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.full }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:oklavier-channels
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
