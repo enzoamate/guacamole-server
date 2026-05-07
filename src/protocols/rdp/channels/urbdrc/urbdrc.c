@@ -33,6 +33,8 @@
  */
 
 #include "channels/urbdrc/urbdrc.h"
+#include "plugins/channels.h"
+#include "plugins/ptr-string.h"
 #include "rdp.h"
 
 #include <freerdp/freerdp.h>
@@ -93,12 +95,17 @@ int guac_rdp_usbdisconnect_handler(guac_user* user, const char* device_id) {
 void guac_rdp_urbdrc_load_plugin(rdpContext* context) {
 
     guac_client* client = ((rdp_freerdp_context*) context)->client;
-    guac_client_log(client, GUAC_LOG_DEBUG,
-            "[urbdrc] enable_usb_redirect=true — Phase 1.1.1B-A: handlers "
-            "wired, DVC plugin not yet registered");
+    char client_ref[GUAC_RDP_PTR_STRING_LENGTH];
 
-    /* Phase 1.1.1B-B: register the "guacurb" DVC plugin via
-     * guac_freerdp_dynamic_channel_collection_add or by invoking
-     * drdynvc's plugin entry point with our DVCPluginEntry callback. */
+    /* Pass our guac_client pointer to the DVC plugin via argv[1]. The
+     * plugin decodes it back via guac_rdp_string_to_ptr() in
+     * DVCPluginEntry(). Same convention as the audio-input "guacai"
+     * plugin uses. */
+    guac_rdp_ptr_to_string(client, client_ref);
+    guac_freerdp_dynamic_channel_collection_add(context->settings, "guacurb",
+            client_ref, NULL);
+
+    guac_client_log(client, GUAC_LOG_DEBUG,
+            "[urbdrc] guacurb DVC plugin queued for drdynvc — Phase 1.1.1B-B");
 }
 

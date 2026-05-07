@@ -122,6 +122,7 @@ noinst_HEADERS =                                 \
     plugins/channels.h                           \
     plugins/guacai/guacai-messages.h             \
     plugins/guacai/guacai.h                      \
+    plugins/guacurb/guacurb.h                    \
     plugins/ptr-string.h                         \
     pointer.h                                    \
     print-job.h                                  \
@@ -155,7 +156,8 @@ libguac_client_rdp_la_LIBADD = \
 
 freerdp_LTLIBRARIES =            \
     libguac-common-svc-client.la \
-    libguacai-client.la
+    libguacai-client.la          \
+    libguacurb-client.la
 
 freerdpdir = @FREERDP_PLUGIN_DIR@
 
@@ -202,6 +204,30 @@ libguacai_client_la_LDFLAGS =      \
 
 libguacai_client_la_LIBADD = \
     @COMMON_LTLIB@           \
+    @LIBGUAC_LTLIB@
+
+#
+# USB redirection (URBDRC) — Oklavier downstream extension.
+# Tracks GUACAMOLE-522 / PR #610.
+#
+
+libguacurb_client_la_SOURCES =        \
+    plugins/guacurb/guacurb.c         \
+    plugins/ptr-string.c
+
+libguacurb_client_la_CFLAGS = \
+    -Werror -Wall -Iinclude   \
+    @COMMON_INCLUDE@          \
+    @LIBGUAC_INCLUDE@         \
+    @RDP_CFLAGS@
+
+libguacurb_client_la_LDFLAGS =      \
+    -module -avoid-version -shared  \
+    @PTHREAD_LIBS@                  \
+    @RDP_LIBS@
+
+libguacurb_client_la_LIBADD = \
+    @COMMON_LTLIB@            \
     @LIBGUAC_LTLIB@
 
 #
