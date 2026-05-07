@@ -33,6 +33,7 @@
 #include "config.h"
 
 #include "plugins/guacurb/guacurb.h"
+#include "plugins/guacurb/guacurb-pdu.h"
 #include "plugins/ptr-string.h"
 
 #include <freerdp/dvc.h>
@@ -47,20 +48,55 @@
 
 /**
  * Callback fired by FreeRDP whenever the URBDRC virtual channel receives
- * data from the Windows VM. In Phase 1.1.1B-C we'll dispatch on the
- * URBDRC PDU header (URB_COMPLETION, IOCONTROL_COMPLETION, etc.) and
- * forward results to the browser via guac_protocol_send_usbdata(). For
- * now we just log the size to confirm wiring.
+ * data from the Windows VM.
+ *
+ * Phase 1.1.1B-C-1: parse the 12-byte URBDRC PDU header and emit a log
+ * line describing each PDU. This is observation-only — we do not yet
+ * encode any responses. The next iteration uses these traces against a
+ * real Windows VM to drive the response encoding work.
  */
 static UINT guac_rdp_urb_data(IWTSVirtualChannelCallback* channel_callback,
         wStream* stream) {
 
     guac_rdp_urb_channel_callback* cb =
             (guac_rdp_urb_channel_callback*) channel_callback;
+    guac_client* client = cb->client;
 
-    guac_client_log(cb->client, GUAC_LOG_TRACE,
-            "[guacurb] URBDRC PDU received (%zu bytes) — dropped (1.1.1B-B)",
-            (size_t) Stream_GetRemainingLength(stream));
+    size_t total = (size_t) Stream_GetRemainingLength(stream);
+
+    /* Every URBDRC PDU starts with a 12-byte header. Anything shorter is
+     * malformed — log and ignore so we don't run off the end of the
+     * buffer trying to decode it. */
+    if (total < 12) {
+        guac_client_log(client, GUAC_LOG_WARNING,
+                "[guacurb] short URBDRC PDU (%zu < 12 bytes) — dropped",
+                total);
+        return CHANNEL_RC_OK;
+    }
+
+    UINT32 interface_id;
+    UINT32 message_id;
+    UINT32 function_id;
+    Stream_Read_UINT32(stream, interface_id);
+    Stream_Read_UINT32(stream, message_id);
+    Stream_Read_UINT32(stream, function_id);
+
+    UINT32 stream_type = GUAC_URB_STREAM_ID(interface_id);
+    UINT32 iface       = GUAC_URB_INTERFACE(interface_id);
+    size_t payload_len = total - 12;
+
+    guac_client_log(client, GUAC_LOG_DEBUG,
+            "[guacurb] PDU stream=%u iface=0x%08x msg=0x%08x fn=0x%08x %s "
+            "(%zu byte payload)",
+            stream_type, iface, message_id, function_id,
+            guac_rdp_urb_function_name(iface, function_id),
+            payload_len);
+
+    /* Phase 1.1.1B-C-2: handle GUAC_URB_FN_RIM_EXCHANGE_CAPABILITY_REQUEST
+     * by responding with our own version + capabilities. Until then we
+     * deliberately don't ACK anything — Windows will retry, eventually
+     * give up, and the channel will close. That's the expected (logged)
+     * outcome at this checkpoint. */
 
     return CHANNEL_RC_OK;
 

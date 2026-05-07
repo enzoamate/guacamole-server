@@ -122,6 +122,7 @@ noinst_HEADERS =                                 \
     plugins/channels.h                           \
     plugins/guacai/guacai-messages.h             \
     plugins/guacai/guacai.h                      \
+    plugins/guacurb/guacurb-pdu.h                \
     plugins/guacurb/guacurb.h                    \
     plugins/ptr-string.h                         \
     pointer.h                                    \
@@ -212,6 +213,7 @@ libguacai_client_la_LIBADD = \
 #
 
 libguacurb_client_la_SOURCES =        \
+    plugins/guacurb/guacurb-pdu.c     \
     plugins/guacurb/guacurb.c         \
     plugins/ptr-string.c
 
