@@ -218,6 +218,7 @@ libguacurb_client_la_SOURCES =        \
 libguacurb_client_la_CFLAGS = \
     -Werror -Wall -Iinclude   \
     @COMMON_INCLUDE@          \
+    @COMMON_SSH_INCLUDE@      \
     @LIBGUAC_INCLUDE@         \
     @RDP_CFLAGS@
 

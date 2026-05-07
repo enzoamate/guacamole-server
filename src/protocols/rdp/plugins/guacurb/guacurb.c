@@ -34,7 +34,6 @@
 
 #include "plugins/guacurb/guacurb.h"
 #include "plugins/ptr-string.h"
-#include "rdp.h"
 
 #include <freerdp/dvc.h>
 #include <freerdp/settings.h>
