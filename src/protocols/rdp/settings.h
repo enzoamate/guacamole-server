@@ -606,6 +606,17 @@ typedef struct guac_rdp_settings {
     int enable_audio_input;
 
     /**
+     * Whether USB device redirection is enabled. When true, the guacd-side
+     * URBDRC bridge is loaded and accepts "usbconnect" / "usbdata" /
+     * "usbdisconnect" Guacamole instructions from the user (browser), and
+     * forwards URBs to the remote Windows session through the FreeRDP
+     * URBDRC dynamic virtual channel.
+     *
+     * Oklavier downstream extension. Not present in upstream guacd.
+     */
+    int enable_usb_redirect;
+
+    /**
      * Whether the RDP Graphics Pipeline Extension is enabled.
      */
     int enable_gfx;

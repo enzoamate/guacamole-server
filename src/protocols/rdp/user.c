@@ -19,6 +19,7 @@
 
 #include "channels/audio-input/audio-input.h"
 #include "channels/cliprdr.h"
+#include "channels/urbdrc/urbdrc.h"
 #include "channels/pipe-svc.h"
 #include "config.h"
 #include "input.h"
@@ -82,6 +83,14 @@ int guac_rdp_user_join_handler(guac_user* user, int argc, char** argv) {
         /* Handle inbound audio streams if audio input is enabled */
         if (settings->enable_audio_input)
             user->audio_handler = guac_rdp_audio_handler;
+
+        /* Wire URBDRC handlers if USB redirection is enabled
+         * (Oklavier downstream extension, GUACAMOLE-522 / PR #610) */
+        if (settings->enable_usb_redirect) {
+            user->usbconnect_handler    = guac_rdp_usbconnect_handler;
+            user->usbdata_handler       = guac_rdp_usbdata_handler;
+            user->usbdisconnect_handler = guac_rdp_usbdisconnect_handler;
+        }
 
     }
 

@@ -129,6 +129,7 @@ const char* GUAC_RDP_CLIENT_ARGS[] = {
     "recording-write-existing",
     "resize-method",
     "enable-audio-input",
+    "enable-usb-redirect",
     "enable-touch",
     "read-only",
 
@@ -604,6 +605,14 @@ enum RDP_ARGS_IDX {
      * connection, "false" or blank otherwise.
      */
     IDX_ENABLE_AUDIO_INPUT,
+
+    /**
+     * "true" if USB device redirection (URBDRC) should be enabled for the
+     * RDP connection, "false" or blank otherwise.
+     *
+     * Oklavier downstream extension. Tracking GUACAMOLE-522 / PR #610.
+     */
+    IDX_ENABLE_USB_REDIRECT,
 
     /**
      * "true" if multi-touch support should be enabled for the RDP connection,
@@ -1260,6 +1269,11 @@ guac_rdp_settings* guac_rdp_parse_args(guac_user* user,
     settings->enable_audio_input =
         guac_user_parse_args_boolean(user, GUAC_RDP_CLIENT_ARGS, argv,
                 IDX_ENABLE_AUDIO_INPUT, 0);
+
+    /* USB device redirection (URBDRC) enable/disable — Oklavier extension */
+    settings->enable_usb_redirect =
+        guac_user_parse_args_boolean(user, GUAC_RDP_CLIENT_ARGS, argv,
+                IDX_ENABLE_USB_REDIRECT, 0);
 
     /* Set gateway hostname */
     settings->gateway_hostname =

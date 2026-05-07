@@ -23,6 +23,7 @@
 #include "beep.h"
 #include "channels/audio-input/audio-buffer.h"
 #include "channels/audio-input/audio-input.h"
+#include "channels/urbdrc/urbdrc.h"
 #include "channels/cliprdr.h"
 #include "channels/disp.h"
 #include "channels/pipe-svc.h"
@@ -134,6 +135,10 @@ static BOOL rdp_freerdp_load_channels(freerdp* instance) {
         /* Downgrade the lock to allow for concurrent read access */
         guac_rwlock_release_lock(&(rdp_client->lock));
     }
+
+    /* Load Oklavier URBDRC bridge if USB redirection is enabled */
+    if (settings->enable_usb_redirect)
+        guac_rdp_urbdrc_load_plugin(context);
 
     /* Load "cliprdr" service if not disabled */
     if (!(settings->disable_copy && settings->disable_paste))
